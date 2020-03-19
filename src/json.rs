@@ -1,13 +1,13 @@
 extern crate alloc;
-use alloc::{vec::Vec, string::String as AllocString};
+use alloc::{string::String as AllocString, vec::Vec};
 
 use crate::parser::{
     Concat, Concat3, Either, Error, Input, OneOf, OneOrMore, Parser, ResultOf, ZeroOrMore,
     ZeroOrOne,
 };
-use crate::{ literals, parsers };
-use core::{ convert::TryInto, fmt::Debug };
-use num_traits::{ float::FloatCore };
+use crate::{literals, parsers};
+use core::{convert::TryInto, fmt::Debug};
+use num_traits::float::FloatCore;
 
 literals! {
     pub WhitespaceChar => '\u{0020}' | '\u{000D}' | '\u{000A}' | '\u{0009}';
@@ -201,10 +201,10 @@ pub struct NumberValue {
 }
 
 impl Into<f64> for NumberValue {
-  fn into(self) -> f64 {
-    (self.integer as f64 + self.fraction as f64 / 10f64.powi(self.fraction_length as i32))
-      * 10f64.powi(self.exponent)
-  }
+    fn into(self) -> f64 {
+        (self.integer as f64 + self.fraction as f64 / 10f64.powi(self.fraction_length as i32))
+            * 10f64.powi(self.exponent)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -218,36 +218,45 @@ pub enum JsonValue {
 }
 
 impl JsonValue {
-  pub fn get_object(&self) -> &JsonObject {
-    if let JsonValue::Object(obj) = self { return obj; }
-    panic!("JsonValue not a type of JsonValue::Object");
-  }
-
-  pub fn get_array(&self) -> &Vec<JsonValue> {
-    if let JsonValue::Array(vec) = self { return vec; }
-    panic!("JsonValue not a type of JsonValue::Array");
-  }
-
-  pub fn get_string(&self) -> AllocString {
-    if let JsonValue::String(val) = self {
-      return val.iter().collect::<AllocString>();
+    pub fn get_object(&self) -> Option<&JsonObject> {
+        if let JsonValue::Object(obj) = self {
+            return Some(obj);
+        }
+        return None;
+        // panic!("JsonValue not a type of JsonValue::Object");
     }
-    panic!("JsonValue not a type of JsonValue::String");
-  }
 
-  pub fn get_bytes(&self) -> Vec<u8> {
-    if let JsonValue::String(val) = self {
-      return val.iter().map(|c| *c as u8).collect::<Vec<_>>();
+    pub fn get_array(&self) -> Option<&Vec<JsonValue>> {
+        if let JsonValue::Array(vec) = self {
+            return Some(vec);
+        }
+        return None;
+        // panic!("JsonValue not a type of JsonValue::Array");
     }
-    panic!("JsonValue not a type of JsonValue::String");
-  }
 
-  pub fn get_number_f64(&self) -> f64 {
-    if let JsonValue::Number(val) = self {
-      return (val.clone()).into();
+    pub fn get_string(&self) -> Option<AllocString> {
+        if let JsonValue::String(val) = self {
+            return Some(val.iter().collect::<AllocString>());
+        }
+        return None;
+        // panic!("JsonValue not a type of JsonValue::String");
     }
-    panic!("JsonValue not a type of JsonValue::Number");
-  }
+
+    pub fn get_bytes(&self) -> Option<Vec<u8>> {
+        if let JsonValue::String(val) = self {
+            return Some(val.iter().map(|c| *c as u8).collect::<Vec<_>>());
+        }
+        return None;
+        // panic!("JsonValue not a type of JsonValue::String");
+    }
+
+    pub fn get_number_f64(&self) -> Option<f64> {
+        if let JsonValue::Number(val) = self {
+            return Some((val.clone()).into());
+        }
+        return None;
+        // panic!("JsonValue not a type of JsonValue::Number");
+    }
 }
 
 impl<I: Input> Parser<I> for Value
